@@ -2147,20 +2147,13 @@ class Remark extends Component {
   // UNSAFE_componentWillMount() {
   //   this.getcurrentTime();
   // }
-  // componentWillUnmount() {
-  //   clearInterval(this.timer);
-  // }
+  componentWillUnmount() {
+    clearInterval(this.timer);
+  }
   UpdatePOlist = (POlist, po) => {
     return POlist.filter(item => {
       return item.po === po;
     });
-  };
-  UpdateSteplist = (Steplist, po) => {
-    return Steplist.filter(item => {
-      return item.po === po;
-    }).map(item => {
-      return item.stepinfo;
-    })[0];
   };
   render() {
     const {lang} = this.props;

@@ -8,6 +8,7 @@ import HeaderPQE from './HeaderPQE';
 import {LineChart, YAxis, Grid, XAxis} from 'react-native-svg-charts';
 import * as shape from 'd3-shape';
 import * as svg from 'react-native-svg';
+import moment from 'moment';
 const width = Dimensions.get('window').width;
 const rem = width / 380;
 const lgen = {
@@ -21,6 +22,10 @@ const lgen = {
   sewstdat: 'Sewing Start Date',
   sewfndat: 'Sewing Finish Date',
   eqchart: 'Efficiency & Quality Chart',
+  eff: 'Efficiency',
+  quality: 'Quality',
+  per: 'Percentage %',
+  mon: 'Month',
 };
 const lgcn = {
   home: '首頁',
@@ -33,6 +38,10 @@ const lgcn = {
   sewstdat: '車縫開始期',
   sewfndat: '車縫完成期',
   eqchart: '效率與質量圖表',
+  eff: '效率',
+  quality: '質量',
+  per: '百分比%',
+  mon: '月份',
 };
 const lgvn = {
   home: 'Trang Chủ',
@@ -45,6 +54,10 @@ const lgvn = {
   sewstdat: 'Ngày Bắt Đầu May',
   sewfndat: 'Ngày Hoàn Thành May',
   eqchart: 'Biểu Đồ Hiệu Suất Và Chất Lượng',
+  eff: 'Hiệu Suất',
+  quality: 'Chất Lượng',
+  per: 'Phần Trăm %',
+  mon: 'Tháng',
 };
 
 class StaffInfoPage extends Component {
@@ -165,35 +178,53 @@ class StaffInfoPage extends Component {
       }`,
     );
     const curlang = lang === 'EN' ? lgen : lang === 'CN' ? lgcn : lgvn;
-    const data1 = [
-      null,
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
+    const orgapidata = [
+      {
+        mon: '201908',
+        eff: Math.floor(Math.random() * 100),
+        quality: Math.floor(Math.random() * 100),
+      },
+      {
+        mon: '201909',
+        eff: Math.floor(Math.random() * 100),
+        quality: Math.floor(Math.random() * 100),
+      },
+      {
+        mon: '201910',
+        eff: Math.floor(Math.random() * 100),
+        quality: Math.floor(Math.random() * 100),
+      },
+      {
+        mon: '201911',
+        eff: Math.floor(Math.random() * 100),
+        quality: Math.floor(Math.random() * 100),
+      },
+      {
+        mon: '201912',
+        eff: Math.floor(Math.random() * 100),
+        quality: Math.floor(Math.random() * 100),
+      },
+      {
+        mon: '202001',
+        eff: Math.floor(Math.random() * 100),
+        quality: Math.floor(Math.random() * 100),
+      },
+      {
+        mon: '202002',
+        eff: Math.floor(Math.random() * 100),
+        quality: Math.floor(Math.random() * 100),
+      },
     ];
-    const data2 = [
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 100),
-    ];
+    const columnday = [];
+    for (let i = 1; i < 13; i++) {
+      columnday.push(
+        moment()
+          .add(-12 + i, 'M')
+          .format('YYYYMM'),
+      );
+    }
+    console.log(columnday);
+    //draw 2 line max and min percent
     const data0 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     const data100 = [
       100,
@@ -211,33 +242,107 @@ class StaffInfoPage extends Component {
       100,
       100,
     ];
+    const data1 = [];
+    for (let index = 0; index < columnday.length + 1; index++) {
+      if (index === 0) {
+        data1.push(null);
+      } else {
+        if (index < columnday.length) {
+          if (
+            orgapidata.filter(item => {
+              return item.mon === columnday[index - 1];
+            }).length > 0
+          ) {
+            data1.push(
+              orgapidata
+                .filter(item => {
+                  return item.mon === columnday[index - 1];
+                })
+                .map(item => {
+                  return item.eff;
+                })[0],
+            );
+          } else {
+            data1.push(null);
+          }
+        } else {
+          data1.push(null);
+        }
+      }
+    }
+    const data2 = [];
+    for (let index = 0; index < columnday.length + 1; index++) {
+      if (index === 0) {
+        data2.push(null);
+      } else {
+        if (index < columnday.length) {
+          if (
+            orgapidata.filter(item => {
+              return item.mon === columnday[index - 1];
+            }).length > 0
+          ) {
+            data2.push(
+              orgapidata
+                .filter(item => {
+                  return item.mon === columnday[index - 1];
+                })
+                .map(item => {
+                  return item.quality;
+                })[0],
+            );
+          } else {
+            data2.push(null);
+          }
+        } else {
+          data2.push(null);
+        }
+      }
+    }
     const data = [
       {
         data: data1,
-        svg: {stroke: 'orange'},
+        svg: {stroke: 'orange', strokeWidth: '1.5'},
       },
       {
         data: data2,
-        svg: {stroke: 'purple'},
+        svg: {stroke: 'purple', strokeWidth: '1.5'},
       },
       {
         data: data0,
-        svg: {stroke: 'white'},
+        svg: {stroke: 'white', strokeWidth: '1.5'},
       },
       {
         data: data100,
-        svg: {stroke: 'gray'},
+        svg: {stroke: 'gray', strokeWidth: '1.5'},
       },
     ];
-    const xlabel = [
-      '',
-      'Dec 2019',
-      'Feb 2020',
-      'Apr 2020',
-      'Jun 2020',
-      'Aug 2020',
-      'Oct 2020',
-    ];
+    const xlabel = [];
+    for (let index = 0; index < 7; index++) {
+      if (index === 0) {
+        xlabel.push('');
+      } else {
+        xlabel.push(
+          moment()
+            .add(-12 + 2 * index, 'M')
+            .format('MM-YYYY'),
+        );
+      }
+    }
+    const verticallines = [];
+    for (let index = 1; index < 14; index++) {
+      verticallines.push(
+        <svg.Line
+          key={index}
+          x1={(0.88 * width * index) / 13}
+          y1={20 * rem}
+          x2={(0.88 * width * index) / 13}
+          y2={300 * rem}
+          stroke="gray"
+          strokeDasharray="5, 5"
+          strokeWidth="1.5"
+        />,
+      );
+    }
     return (
       <View
         style={{
@@ -313,10 +418,57 @@ class StaffInfoPage extends Component {
           style={{
             flex: 20,
             flexDirection: 'column',
+            backgroundColor: '#29323F',
           }}>
           <View
             style={{
-              height: 300 * rem,
+              height: 60 * rem,
+              flexDirection: 'row',
+              backgroundColor: '#29323F',
+            }}>
+            <svg.Svg height="100%" width="100%">
+              <svg.Line
+                x1={30 * rem}
+                y1={20 * rem}
+                x2={110 * rem}
+                y2={20 * rem}
+                stroke="orange"
+                strokeWidth="1.5"
+              />
+              <svg.Text
+                x={115 * rem}
+                y={23 * rem}
+                fontSize={11.5 * rem}
+                fill="white">
+                {curlang.eff}
+              </svg.Text>
+              <svg.Line
+                x1={200 * rem}
+                y1={20 * rem}
+                x2={280 * rem}
+                y2={20 * rem}
+                stroke="purple"
+                strokeWidth="1.5"
+              />
+              <svg.Text
+                x={285 * rem}
+                y={23 * rem}
+                fontSize={11.5 * rem}
+                fill="white">
+                {curlang.quality}
+              </svg.Text>
+              <svg.Text
+                x={15 * rem}
+                y={50 * rem}
+                fontSize={11.5 * rem}
+                fill="white">
+                {curlang.per}
+              </svg.Text>
+            </svg.Svg>
+          </View>
+          <View
+            style={{
+              height: 320 * rem,
               flexDirection: 'row',
               backgroundColor: '#29323F',
             }}>
@@ -369,136 +521,11 @@ class StaffInfoPage extends Component {
                     x1={0}
                     y1={10 * rem}
                     x2={0}
-                    y2={280 * rem}
+                    y2={300 * rem}
                     stroke="white"
                     strokeWidth="1.5"
                   />
-                  <svg.Line
-                    x1={(0.88 * width) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 2) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 2) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 3) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 3) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 3) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 3) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 4) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 4) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 5) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 5) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 6) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 6) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 7) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 7) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 8) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 8) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 9) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 9) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 10) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 10) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 11) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 11) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 12) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 12) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
-                  <svg.Line
-                    x1={(0.88 * width * 13) / 13}
-                    y1={20 * rem}
-                    x2={(0.88 * width * 13) / 13}
-                    y2={280 * rem}
-                    stroke="gray"
-                    strokeDasharray="5, 5"
-                    strokeWidth="1.5"
-                  />
+                  {verticallines}
                 </svg.Svg>
               </View>
             </View>
@@ -511,43 +538,73 @@ class StaffInfoPage extends Component {
           </View>
           <View
             style={{
-              height: 20 * rem,
-              flexDirection: 'row',
+              height: 40 * rem,
+              flexDirection: 'column',
               backgroundColor: '#29323F',
             }}>
             <View
               style={{
-                flex: 2,
-                flexDirection: 'column',
-              }}
-            />
-            <View
-              style={{
-                flex: 20,
-                flexDirection: 'column',
+                flex: 1,
+                flexDirection: 'row',
+                backgroundColor: '#29323F',
               }}>
-              <XAxis
-                data={[0, 1, 2, 3, 4, 5, 6]}
-                numberOfTicks={7}
-                formatLabel={index => `${xlabel[index]}`}
-                contentInset={{right: 28 * rem}}
-                svg={{
-                  fontSize: 10,
-                  fill: 'white',
-                  fontWeight: 'bold',
-                  rotation: 0,
-                  verticalAnchor: 'middle',
+              <View
+                style={{
+                  flex: 2,
+                  flexDirection: 'column',
+                }}
+              />
+              <View
+                style={{
+                  flex: 20,
+                  flexDirection: 'column',
+                }}>
+                <XAxis
+                  data={[0, 1, 2, 3, 4, 5, 6]}
+                  numberOfTicks={7}
+                  formatLabel={index => `${xlabel[index]}`}
+                  contentInset={{right: 28 * rem}}
+                  svg={{
+                    fontSize: 10.5 * rem,
+                    fill: 'white',
+                    fontWeight: 'bold',
+                    rotation: 0,
+                    verticalAnchor: 'middle',
+                  }}
+                />
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: 'column',
                 }}
               />
             </View>
             <View
               style={{
                 flex: 1,
-                flexDirection: 'column',
-              }}
-            />
+                flexDirection: 'row',
+                backgroundColor: '#29323F',
+                justifyContent: 'flex-end',
+              }}>
+              <Text
+                style={{
+                  fontSize: 12 * rem,
+                  color: 'white',
+                  marginRight: 10 * rem,
+                }}>
+                {curlang.mon}
+              </Text>
+            </View>
           </View>
         </View>
+        <View
+          style={{
+            flex: 4,
+            flexDirection: 'column',
+            backgroundColor: 'tomato',
+          }}
+        />
       </View>
     );
   }
