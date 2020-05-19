@@ -30,22 +30,26 @@ const defaultvalue = {
   tabclick: '1',
   col: 1,
   bttabload: false,
+  reload: false,
+  tabclickeq: '1',
+  coleq: 1,
+  bttabloadeq: false,
   sorttype: 'az01',
   EElistapi: [],
   EElist: [],
 };
 const reducer = (state = defaultvalue, action) => {
-  if (action.type === 'VN') {
-    return {...state, lan: 'VN'};
-  }
-  if (action.type === 'CN') {
-    return {...state, lan: 'CN'};
-  }
-  if (action.type === 'EN') {
-    return {...state, lan: 'EN'};
+  if (action.type === 'SetLang') {
+    return {...state, lan: action.lan};
   }
   if (action.type === 'Login_or_Logout') {
-    return {...state, usr: action.usr, pwd: action.pwd, sno: action.sno};
+    return {
+      ...state,
+      usr: action.usr,
+      pwd: action.pwd,
+      sno: action.sno,
+      reload: action.reload,
+    };
   }
   if (action.type === 'sort') {
     return {...state, sorttype: action.sorttype};
@@ -63,6 +67,13 @@ const reducer = (state = defaultvalue, action) => {
       return {...state};
     }
   }
+  if (action.type === 'nextcoleq') {
+    if (state.col < 6) {
+      return {...state, coleq: state.coleq + 1};
+    } else {
+      return {...state};
+    }
+  }
   if (action.type === 'prevcol') {
     if (state.col > 1) {
       return {...state, col: state.col - 1};
@@ -70,14 +81,30 @@ const reducer = (state = defaultvalue, action) => {
       return {...state};
     }
   }
+  if (action.type === 'prevcoleq') {
+    if (state.col > 1) {
+      return {...state, coleq: state.coleq - 1};
+    } else {
+      return {...state};
+    }
+  }
   if (action.type === 'updatecol') {
     return {...state, col: action.col};
+  }
+  if (action.type === 'updatecoleq') {
+    return {...state, coleq: action.coleq};
   }
   if (action.type === 'bttabloadchange') {
     return {...state, bttabload: action.bttabload};
   }
+  if (action.type === 'bttabloadchangeeq') {
+    return {...state, bttabloadeq: action.bttabloadeq};
+  }
   if (action.type === 'tabclick') {
     return {...state, tabclick: action.tabclick};
+  }
+  if (action.type === 'tabclickeq') {
+    return {...state, tabclickeq: action.tabclickeq};
   }
   return state;
 };

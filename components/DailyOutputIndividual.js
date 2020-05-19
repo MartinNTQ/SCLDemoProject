@@ -2170,7 +2170,7 @@ class DailyOutputIndividual extends Component {
         <HeaderDO title={'Daily Ouput Individual'} home={'Home'} />
         <View
           style={{
-            flex: 3.6,
+            flex: 3.8,
             flexDirection: 'column',
             justifyContent: 'space-around',
           }}>

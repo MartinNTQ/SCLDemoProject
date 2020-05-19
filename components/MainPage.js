@@ -12,6 +12,7 @@ import IconHR from 'react-native-vector-icons/Ionicons';
 import IconPQE from 'react-native-vector-icons/MaterialCommunityIcons';
 import Loader from './Loader';
 import Androw from 'react-native-androw';
+import AsyncStorage from '@react-native-community/async-storage';
 const entireScreenWidth = Dimensions.get('window').width;
 var rem = entireScreenWidth / 380;
 const lgen = {Setting: 'Setting', Home: 'Home', Logout: 'Logout'};
@@ -24,6 +25,11 @@ class MainPage extends Component {
       loading: false,
     };
   }
+  _removecurusr = async () => {
+    try {
+      await AsyncStorage.removeItem('curusr');
+    } catch (error) {}
+  };
   render() {
     const {lang} = this.props;
     //Alert.alert(this.props.lang);
@@ -62,7 +68,8 @@ class MainPage extends Component {
                   alignItems: 'center',
                 }}
                 onPress={() => {
-                  this.props.Logout('', '');
+                  this.props.Logout('', '', false);
+                  this._removecurusr();
                   NavRef.navigate('LoginPage');
                 }}>
                 <IconLogOut
@@ -143,7 +150,7 @@ class MainPage extends Component {
                     size={36 * rem}
                     name="home"
                     onPress={() => {
-                      this.props.Logout(this.props.usr, this.props.pwd);
+                      this.props.Logout(this.props.usr, this.props.pwd, false);
                       NavRef.navigate('LoginPage');
                     }}
                   />
@@ -376,7 +383,8 @@ export default connect(
   },
   dispatch => {
     return {
-      Logout: (usr, pwd) => dispatch({type: 'Login_or_Logout', usr, pwd}),
+      Logout: (usr, pwd, reload) =>
+        dispatch({type: 'Login_or_Logout', usr, pwd, reload}),
     };
   },
 )(MainPage);

@@ -2107,7 +2107,6 @@ class Remark extends Component {
     var POlist = POStepapi.map(item => {
       return item.po;
     });
-    var Steplist = this.UpdateSteplist(POStepapi, POlist[0]);
     var band = userinfo.map(item => {
       return item.band;
     })[0];
@@ -2139,7 +2138,6 @@ class Remark extends Component {
         index: 0,
         po: POlist[0],
         POlist: POlist,
-        Steplist: Steplist,
         POinfo: POinfo,
       });
     }

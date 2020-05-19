@@ -17,6 +17,8 @@ import * as NavRef from '../NavRef/NavRef';
 import {Checklogin, Updateerrtime, Reseterrtime} from '../function/Function';
 import Loader from './Loader';
 import Androw from 'react-native-androw';
+import AsyncStorage from '@react-native-community/async-storage';
+import CheckBox from 'react-native-check-box';
 const entireScreenWidth = Dimensions.get('window').width;
 var rem = entireScreenWidth / 380;
 const lgen = {
@@ -30,6 +32,7 @@ const lgen = {
   invalidpwd: 'Invalid password',
   invaliduser: 'Invalid username',
   fail_connect: 'Fail Connection',
+  rememberpwd: 'Remember Password',
 };
 const lgcn = {
   user_nameplh: '用戶名',
@@ -42,6 +45,7 @@ const lgcn = {
   invalidpwd: '無效的密碼',
   invaliduser: '無效的用戶名',
   fail_connect: '連接失敗',
+  rememberpwd: '記得密碼',
 };
 const lgvn = {
   user_nameplh: 'Tên',
@@ -54,26 +58,116 @@ const lgvn = {
   invalidpwd: 'Mật khẩu không hợp lệ',
   invaliduser: 'Tài khoản không hợp lệ',
   fail_connect: 'Kết nối lỗi',
+  rememberpwd: 'Nhớ Mật Khẩu',
 };
 class LoginPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
       inputusr: false,
-      inputpwd: false,
       loading: false,
       showpwd: true,
+      rememberpwd: false,
       user_name: '',
       password: '',
     };
   }
+  _retrieveLangData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('LANG');
+      if (value && value.trim().length) {
+        this.props.SetLange(value);
+      }
+    } catch (error) {}
+  };
+  _retrievePwd = async usr => {
+    try {
+      const value = await AsyncStorage.getItem(`${usr}`);
+      if (value && value.trim().length) {
+        return value;
+      } else {
+        return '';
+      }
+    } catch (error) {
+      return '';
+    }
+  };
+  _retrievecurrent_remember_usr = async () => {
+    try {
+      const value = await AsyncStorage.getItem('curusr');
+      console.log('curusr: ' + value);
+      if (value && value.trim().length) {
+        this.props.Login(value, '', false);
+      }
+    } catch (error) {}
+  };
+  _storeLangData = async lan => {
+    try {
+      await AsyncStorage.setItem('LANG', lan);
+    } catch (error) {}
+  };
+  _storePwd = async (usr, pwd) => {
+    try {
+      await AsyncStorage.setItem(usr, pwd);
+    } catch (error) {}
+  };
+  _storecurrent_remember_usr = async usr => {
+    try {
+      await AsyncStorage.setItem('curusr', usr);
+    } catch (error) {}
+  };
+  _removePwd = async usr => {
+    try {
+      await AsyncStorage.removeItem(usr);
+    } catch (error) {}
+  };
+  _removecurusr = async () => {
+    try {
+      await AsyncStorage.removeItem('curusr');
+    } catch (error) {}
+  };
   componentDidMount() {
-    if (!this.state.inputusr && !this.state.inputpwd) {
-      this.setState({user_name: this.props.usr, password: this.props.pwd});
+    this._retrieveLangData();
+    this._retrievecurrent_remember_usr();
+    //this._removecurusr();
+    if (!this.state.inputusr) {
+      this.setState({
+        user_name: this.props.usr,
+        password: this.props.pwd,
+      });
+      this._retrievePwd(this.props.usr).then(result => {
+        this.setState({
+          password: result,
+          rememberpwd:
+            result && result.trim().length ? true : this.state.rememberpwd,
+        });
+      });
+    }
+  }
+  _reload() {
+    if (!this.state.inputusr && !this.props.reload) {
+      setTimeout(() => {
+        this._retrievePwd(this.props.usr).then(result => {
+          this.setState({
+            user_name: this.props.usr,
+            password: !this.state.inputusr
+              ? this.props.pwd
+              : result && result.trim().length
+              ? result
+              : this.state.password,
+            rememberpwd:
+              result && result.trim().length ? true : this.state.rememberpwd,
+          });
+          this.props.Login(this.state.user_name, this.state.password, true);
+          console.log('pwd:' + this.state.password);
+          console.log('rememberpwd:' + this.state.rememberpwd);
+        });
+      }, 0);
     }
   }
   render() {
     const {lang} = this.props;
+    this._reload();
     const curlang = lang === 'EN' ? lgen : lang === 'CN' ? lgcn : lgvn;
     return (
       <View
@@ -97,7 +191,7 @@ class LoginPage extends Component {
         </View>
         <View
           style={{
-            flex: 1,
+            flex: 0.6,
             backgroundColor: 'rgb(118, 188, 33)',
             alignItems: 'center',
             justifyContent: 'center',
@@ -118,22 +212,52 @@ class LoginPage extends Component {
             />
             <TextInput
               ref="usrref"
-              style={{textAlign: 'center', fontSize: 15 * rem, width: '60%'}}
+              style={{
+                textAlign: 'center',
+                fontSize: 15 * rem,
+                width: '60%',
+              }}
               placeholder={curlang.user_nameplh}
+              autoCapitalize="none"
               onChangeText={user_name => {
                 this.setState({user_name, inputusr: true});
-                this.props.Login(user_name);
+                this.props.Login(user_name, this.state.password, false);
+                this._retrievePwd(user_name).then(result => {
+                  this.setState({
+                    password: result,
+                    rememberpwd:
+                      result && result.trim().length
+                        ? true
+                        : this.state.rememberpwd,
+                  });
+                });
               }}
-              value={
-                !this.state.inputusr ? this.props.usr : this.state.user_name
-              }
+              onBlur={() => {
+                if (!this.state.inputusr) {
+                  this.props.Login(
+                    this.state.user_name,
+                    this.state.password,
+                    false,
+                  );
+                  this._retrievePwd(this.state.user_name).then(result => {
+                    this.setState({
+                      password: result,
+                      rememberpwd:
+                        result && result.trim().length
+                          ? true
+                          : this.state.rememberpwd,
+                    });
+                  });
+                }
+              }}
+              value={this.state.user_name}
             />
             <Icon style={{marginRight: 15 * rem}} />
           </View>
         </View>
         <View
           style={{
-            flex: 1,
+            flex: 0.6,
             backgroundColor: 'rgb(118, 188, 33)',
             alignItems: 'center',
             justifyContent: 'center',
@@ -161,24 +285,16 @@ class LoginPage extends Component {
                 fontSize: 15 * rem,
               }}
               secureTextEntry={
-                this.state.password.length > 0
+                this.state.password && this.state.password.trim().length
                   ? this.state.showpwd
                   : !this.state.showpwd
               }
               onChangeText={password => {
-                if (!this.state.inputpwd) {
-                  this.setState({
-                    showpwd: true,
-                  });
-                }
                 this.setState({
                   password,
-                  inputpwd: true,
                 });
               }}
-              value={
-                !this.state.inputpwd ? this.props.pwd : this.state.password
-              }
+              value={this.state.password}
               placeholder={curlang.pswordplh}
             />
             <Icon
@@ -221,16 +337,13 @@ class LoginPage extends Component {
                   loading: true,
                 });
                 this.props.Login(
-                  !this.state.inputusr
-                    ? this.props.usr
-                    : this.state.user_name.trim(),
-                  !this.state.inputpwd ? this.props.pwd : this.state.password,
+                  this.state.user_name,
+                  this.state.password,
+                  false,
                 );
                 Checklogin(
-                  !this.state.inputusr
-                    ? this.props.usr
-                    : this.state.user_name.trim(),
-                  !this.state.inputpwd ? this.props.pwd : this.state.password,
+                  this.state.user_name.trim(),
+                  this.state.password,
                   3,
                 ).then(result => {
                   setTimeout(() => {
@@ -245,26 +358,45 @@ class LoginPage extends Component {
                           this.refs.usrref.focus();
                           break;
                         case 'reset_errtime':
-                          //Alert.alert(curlang().emptyusername);
-                          //break;
-                          Reseterrtime(this.state.user_name.trim()).then(
-                            res1 => {
-                              NavRef.navigate('MainPage');
-                              this.setState({
-                                loading: false,
-                                inputusr: false,
-                                inputpwd: false,
-                              });
-                            },
+                          if (this.state.rememberpwd) {
+                            this._storePwd(
+                              this.state.user_name.trim(),
+                              this.state.password,
+                            );
+                          } else {
+                            this._removePwd(this.state.user_name.trim());
+                          }
+                          this._storecurrent_remember_usr(
+                            this.state.user_name.trim(),
                           );
-                          break;
-                        case 'noreset_errtime':
-                          NavRef.navigate('MainPage');
+                          Reseterrtime(this.state.user_name.trim()).then(
+                            res1 => {},
+                          );
                           this.setState({
                             loading: false,
                             inputusr: false,
-                            inputpwd: false,
+                            reload: false,
                           });
+                          NavRef.navigate('MainPage');
+                          break;
+                        case 'noreset_errtime':
+                          if (this.state.rememberpwd) {
+                            this._storePwd(
+                              this.state.user_name.trim(),
+                              this.state.password,
+                            );
+                          } else {
+                            this._removePwd(this.state.user_name.trim());
+                          }
+                          this._storecurrent_remember_usr(
+                            this.state.user_name.trim(),
+                          );
+                          this.setState({
+                            loading: false,
+                            inputusr: false,
+                            reload: false,
+                          });
+                          NavRef.navigate('MainPage');
                           break;
                         case 'blocked':
                           Alert.alert(curlang.blockedusername);
@@ -274,14 +406,13 @@ class LoginPage extends Component {
                           break;
                         case 'invalid_pwd':
                           Updateerrtime(this.state.user_name.trim()).then(
-                            res2 => {
-                              Alert.alert(curlang.invalidpwd);
-                              this.refs.pwdref.focus();
-                              this.setState({
-                                loading: false,
-                              });
-                            },
+                            res2 => {},
                           );
+                          Alert.alert(curlang.invalidpwd);
+                          this.setState({
+                            loading: false,
+                          });
+                          this.refs.pwdref.focus();
                           break;
                         default:
                           Alert.alert(curlang.fail_connect);
@@ -317,10 +448,32 @@ class LoginPage extends Component {
             }}>
             {curlang.forgot_pswlb}
           </Text>
+          <View
+            style={{
+              flex: 0.8,
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <CheckBox
+              ref="rememberpwd"
+              checkBoxColor="white"
+              onClick={() => {
+                this.setState({
+                  rememberpwd: !this.state.rememberpwd,
+                  inputusr: true,
+                });
+              }}
+              isChecked={this.state.rememberpwd}
+            />
+            <Text style={{color: 'white', fontSize: 13 * rem}}>
+              {curlang.rememberpwd}
+            </Text>
+          </View>
         </View>
         <View
           style={{
-            flex: 1,
+            flex: 0.8,
             backgroundColor: 'rgb(118, 188, 33)',
             flexDirection: 'row',
             alignItems: 'center',
@@ -367,13 +520,8 @@ class LoginPage extends Component {
               </Text>
               <TouchableOpacity
                 onPress={() => {
-                  this.props.CNChange();
-                  if (this.props.pwd === '' && !this.state.inputpwd) {
-                    this.setState({showpwd: false});
-                  }
-                  if (!this.state.inputusr) {
-                    this.setState({user_name: this.props.usr});
-                  }
+                  this.props.SetLange('CN');
+                  this._storeLangData('CN');
                 }}>
                 <Image
                   source={require('../image/CN.png')}
@@ -398,15 +546,8 @@ class LoginPage extends Component {
               </Text>
               <TouchableOpacity
                 onPress={() => {
-                  this.props.ENChange();
-                  if (this.props.pwd === '' && !this.state.inputpwd) {
-                    this.setState({showpwd: false});
-                  }
-                  if (!this.state.inputusr) {
-                    this.setState({
-                      user_name: this.props.usr,
-                    });
-                  }
+                  this.props.SetLange('EN');
+                  this._storeLangData('EN');
                 }}>
                 <Image
                   source={require('../image/UK.png')}
@@ -431,13 +572,8 @@ class LoginPage extends Component {
               </Text>
               <TouchableOpacity
                 onPress={() => {
-                  this.props.VNChange();
-                  if (this.props.pwd === '' && !this.state.inputpwd) {
-                    this.setState({showpwd: false});
-                  }
-                  if (!this.state.inputusr) {
-                    this.setState({user_name: this.props.usr});
-                  }
+                  this.props.SetLange('VN');
+                  this._storeLangData('VN');
                 }}>
                 <Image
                   source={require('../image/VN.png')}
@@ -477,14 +613,18 @@ class LoginPage extends Component {
 }
 export default connect(
   state => {
-    return {lang: state.lan, usr: state.usr, pwd: state.pwd};
+    return {
+      lang: state.lan,
+      usr: state.usr,
+      pwd: state.pwd,
+      reload: state.reload,
+    };
   },
   dispatch => {
     return {
-      CNChange: () => dispatch({type: 'CN'}),
-      VNChange: () => dispatch({type: 'VN'}),
-      ENChange: () => dispatch({type: 'EN'}),
-      Login: (usr, pwd) => dispatch({type: 'Login_or_Logout', usr, pwd}),
+      SetLange: lan => dispatch({type: 'SetLang', lan}),
+      Login: (usr, pwd, reload) =>
+        dispatch({type: 'Login_or_Logout', usr, pwd, reload}),
     };
   },
 )(LoginPage);

@@ -9,6 +9,7 @@ import {LineChart, YAxis, Grid, XAxis} from 'react-native-svg-charts';
 import * as shape from 'd3-shape';
 import * as svg from 'react-native-svg';
 import moment from 'moment';
+import BottomTabMenuEQ from './BottomTabMenuEQ';
 const width = Dimensions.get('window').width;
 const rem = width / 380;
 const lgen = {
@@ -67,6 +68,7 @@ class StaffInfoPage extends Component {
       EEinfo: [],
       POlist: [],
       BandList: [],
+      orgapidata: [],
     };
   }
   componentDidMount() {
@@ -132,52 +134,6 @@ class StaffInfoPage extends Component {
         pmg: 'Lam',
       },
     ];
-    var BandList = POBandapiorg.map(item => {
-      return item.band;
-    });
-    var POlist = POBandapiorg.filter(item => {
-      return item.band === BandList[0];
-    });
-    this.setState({
-      BandList,
-      POlist,
-    });
-  }
-  render() {
-    const {lang} = this.props;
-    const band = this.state.POlist.map(item => {
-      return item.band;
-    })[0];
-    const leader = this.state.POlist.map(item => {
-      return item.led;
-    })[0];
-    const po = this.state.POlist.map(item => {
-      return item.po;
-    })[0];
-    const sup = this.state.POlist.map(item => {
-      return item.sup;
-    })[0];
-    const pmg = this.state.POlist.map(item => {
-      return item.pmg;
-    })[0];
-    const style = this.state.POlist.map(item => {
-      return item.style;
-    })[0];
-    const sewingstartdate = ConvertDate(
-      `${
-        this.state.POlist.map(item => {
-          return item.sewingstartdate;
-        })[0]
-      }`,
-    );
-    const sewingfinishdate = ConvertDate(
-      `${
-        this.state.POlist.map(item => {
-          return item.sewingfinishdate;
-        })[0]
-      }`,
-    );
-    const curlang = lang === 'EN' ? lgen : lang === 'CN' ? lgcn : lgvn;
     const orgapidata = [
       {
         mon: '201908',
@@ -215,6 +171,53 @@ class StaffInfoPage extends Component {
         quality: Math.floor(Math.random() * 100),
       },
     ];
+    var BandList = POBandapiorg.map(item => {
+      return item.band;
+    });
+    var POlist = POBandapiorg.filter(item => {
+      return item.band === BandList[0];
+    });
+    this.setState({
+      BandList,
+      POlist,
+      orgapidata,
+    });
+  }
+  render() {
+    const {lang} = this.props;
+    const band = this.state.POlist.map(item => {
+      return item.band;
+    })[0];
+    const leader = this.state.POlist.map(item => {
+      return item.led;
+    })[0];
+    const po = this.state.POlist.map(item => {
+      return item.po;
+    })[0];
+    const sup = this.state.POlist.map(item => {
+      return item.sup;
+    })[0];
+    const pmg = this.state.POlist.map(item => {
+      return item.pmg;
+    })[0];
+    const style = this.state.POlist.map(item => {
+      return item.style;
+    })[0];
+    const sewingstartdate = ConvertDate(
+      `${
+        this.state.POlist.map(item => {
+          return item.sewingstartdate;
+        })[0]
+      }`,
+    );
+    const sewingfinishdate = ConvertDate(
+      `${
+        this.state.POlist.map(item => {
+          return item.sewingfinishdate;
+        })[0]
+      }`,
+    );
+    const curlang = lang === 'EN' ? lgen : lang === 'CN' ? lgcn : lgvn;
     const columnday = [];
     for (let i = 1; i < 13; i++) {
       columnday.push(
@@ -223,7 +226,6 @@ class StaffInfoPage extends Component {
           .format('YYYYMM'),
       );
     }
-    console.log(columnday);
     //draw 2 line max and min percent
     const data0 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     const data100 = [
@@ -249,12 +251,12 @@ class StaffInfoPage extends Component {
       } else {
         if (index < columnday.length) {
           if (
-            orgapidata.filter(item => {
+            this.state.orgapidata.filter(item => {
               return item.mon === columnday[index - 1];
             }).length > 0
           ) {
             data1.push(
-              orgapidata
+              this.state.orgapidata
                 .filter(item => {
                   return item.mon === columnday[index - 1];
                 })
@@ -277,12 +279,12 @@ class StaffInfoPage extends Component {
       } else {
         if (index < columnday.length) {
           if (
-            orgapidata.filter(item => {
+            this.state.orgapidata.filter(item => {
               return item.mon === columnday[index - 1];
             }).length > 0
           ) {
             data2.push(
-              orgapidata
+              this.state.orgapidata
                 .filter(item => {
                   return item.mon === columnday[index - 1];
                 })
@@ -598,13 +600,7 @@ class StaffInfoPage extends Component {
             </View>
           </View>
         </View>
-        <View
-          style={{
-            flex: 4,
-            flexDirection: 'column',
-            backgroundColor: 'tomato',
-          }}
-        />
+        <BottomTabMenuEQ />
       </View>
     );
   }
